@@ -7,10 +7,7 @@
         ##    for each activity and each subject.
 
 ## Install required packages
-if (!require("dplyr")) {
-        install.packages("dplyr")
-        require("dplyr")
-}
+
 if (!require("reshape2")) {
         install.packages("reshape2")
         require("reshape2")
@@ -33,23 +30,52 @@ subject <- rbind(test_subject, train_subject)
 colnames(subject) <- "subject"
 
 ## Merge and label the test and training labels
-label <- rbind(test_labels, train_labels)
-label <- merge(label, activity_labels, by = 1)[, 2]
+labels <- rbind(test_labels, train_labels)
+activity <- merge(labels, activity_labels, by = 1)[, 2]
 
 ## Merge and label test and training datasets 
 data <- rbind(test_data, train_data)
 colnames(data) <- features[, 2]
 
 ## Final merge
-data <- cbind(subject, label, data)
+data <- cbind(subject, activity, data)
 
 ## Create dataset with only means and standard deviations
 search <- grep("-mean|-std", colnames(data))
 desired_data <- data[, c(1, 2, search)]
 
 ## Group by subject/label
-melted = melt(desired_data, id.var = c("subject", "label"))
-tidy = dcast(melted, subject + label ~ variable, mean)
+melted = melt(desired_data, id.var = c("subject", "activity"))
+tidy = dcast(melted, subject + activity ~ variable, mean)
+
+## Apply descriptive activity names
+
+tidy[,"activity"] <- gsub(1,"Walking", tidy$activity)
+tidy[,"activity"] <- gsub(2,"Walking Upstairs", tidy$activity)
+tidy[,"activity"] <- gsub(3,"Walking Downstairs", tidy$activity)
+tidy[,"activity"] <- gsub(4,"Sitting", tidy$activity)
+tidy[,"activity"] <- gsub(5,"Standing", tidy$activity)
+tidy[,"activity"] <- gsub(6,"Laying", tidy$activity)
+
+## Apply descriptive variable names
+
+headervalues <- names(tidy)
+
+headervalues <- sub("^t", "Time", headervalues)
+headervalues <- sub("^f","Frequency", headervalues)
+headervalues <- sub("Acc","Accelerometer", headervalues)
+headervalues <- sub("-mean..","Mean", headervalues)
+headervalues <- sub("-X","Xaxis", headervalues)
+headervalues <- sub("-Y","Yaxis", headervalues)
+headervalues <- sub("-Z","Zaxis", headervalues)
+headervalues <- sub("-std..","StandardDeviation", headervalues)
+headervalues <- sub("Gyro","Gyroscope", headervalues)
+headervalues <- sub("BodyBody","Body", headervalues)
+headervalues <- sub("Mag","Magnitude", headervalues)
+headervalues <- sub("Group.1","subject", headervalues)
+headervalues <- sub("Group.2","activity", headervalues)
+
+headervalues -> names(tidy)
 
 ## Save dataset
-write.table(tidy, file="./tidy_data.txt")
+write.table(tidy, file="./tidy_data.txt", row.name = FALSE)
