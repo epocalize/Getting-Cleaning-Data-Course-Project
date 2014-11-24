@@ -1,17 +1,11 @@
 ## This R script does the following:
-        ## 1. Merges the training and test sets to create one data set
-        ## 2. Extracts only the measurements on the mean and standard deviation for each measurement
-        ## 3. Uses descriptive activity names to name the activities in the data set.
-        ## 4. Appropriately labels the data set with descriptive variable names. 
-        ## 5. Creates a second, independent tidy data set with the average of each variable 
-        ##    for each activity and each subject.
+## Step 1. Merges the training and test sets to create one data set
+## Step 2. Extracts only the measurements on the mean and standard deviation for each measurement
+## Step 3. Uses descriptive activity names to name the activities in the data set.
+## Step 4. Appropriately labels the data set with descriptive variable names. 
+## Step 5. Creates a second, independent tidy data set with the average of each variable 
+##    for each activity and each subject.
 
-## Install required packages
-
-if (!require("reshape2")) {
-        install.packages("reshape2")
-        require("reshape2")
-}
 
 ## Load the necessary data sets
 test_subject <- read.table("./test/subject_test.txt")
@@ -23,50 +17,69 @@ train_data <- read.table("./train/X_train.txt")
 train_labels <- read.table("./train/Y_train.txt")
 
 featuresList <- read.table("./features.txt", stringsAsFactors = FALSE)
-activity_labels <- read.table("./activity_labels.txt")
 
-## Combine test and training datasets 
+activities <- read.table("./activity_labels.txt")
+
+## Combine test and training datasets (step 1)
 data <- rbind(test_data, train_data)
-colnames(data) <- features[, 2]
 
 ## Combine test and training subjects
-subject <- rbind(test_subject, train_subject)
-colnames(subject) <- "subject"
+subjects <- rbind(test_subject, train_subject)
 
 ## Combine test and training labels
 labels <- rbind(test_labels, train_labels)
-activity <- merge(labels, activity_labels, by = 1)[, 2]
 
-## Final merge
-data <- cbind(subject, activity, data)
+## Extract names from features list
+features <- featuresList$V2
 
-## Create dataset with only means and standard deviations
-search <- grep("-mean|-std", colnames(data))
-desired_data <- data[, c(1, 2, search)]
+## Extract mean and standard deviation columns (step 2)
+keepColumns <- grepl("mean|std[^F]", features, perl = TRUE)
 
-## Group by subject/label
-melted = melt(desired_data, id.var = c("subject", "activity"))
-tidy = dcast(melted, subject + activity ~ variable, mean)
+## Rename
+data <- data[, keepColumns]
+names(data) <- features[keepColumns]
 
-## Apply descriptive variable names
+## Apply descriptive activity names (step 3)
+activities[, 2] = gsub("_", "", tolower(as.character(activities[, 2])))
+labels[, 1] = activities[labels[, 1], 2]
+names(labels) <- "activity"
+names(subjects) <- "subject"
 
-headervalues <- names(tidy)
+## Create tidy data set
+tidyData <- cbind(subjects, labels, data)
+
+## Apply descriptive variable names (step 4)
+headervalues <- names(tidyData)
 
 headervalues <- sub("^t", "Time", headervalues)
-headervalues <- sub("^f","Frequency", headervalues)
-headervalues <- sub("Acc","Accelerometer", headervalues)
+headervalues <- sub("^f","Freq", headervalues)
 headervalues <- sub("-mean..","Mean", headervalues)
 headervalues <- sub("-X","Xaxis", headervalues)
 headervalues <- sub("-Y","Yaxis", headervalues)
 headervalues <- sub("-Z","Zaxis", headervalues)
-headervalues <- sub("-std..","StandardDeviation", headervalues)
-headervalues <- sub("Gyro","Gyroscope", headervalues)
+headervalues <- sub("-std..","StdDev", headervalues)
 headervalues <- sub("BodyBody","Body", headervalues)
-headervalues <- sub("Mag","Magnitude", headervalues)
-headervalues <- sub("Group.1","subject", headervalues)
-headervalues <- sub("Group.2","activity", headervalues)
 
-headervalues -> names(tidy)
+headervalues -> names(tidyData)
 
-## Save dataset
-write.table(tidy, file="./tidy_data.txt", row.name = FALSE)
+## Create second tidy data set with average of each variable for each activity and each subject
+## (step 5)
+uS = unique(subject)[, 1]
+nS = length(uS)
+nA = length(activities[, 1])
+nC = length(names(tidyData))
+td = tidyData[1:(nS*nA), ]
+
+row = 1
+for (s in 1:nS) {
+        for (a in 1:nA) {
+                td[row, 1] = uS[s]
+                td[row, 2] = activities[a, 2]
+                tmp <- tidyData[tidyData$subject==s & tidyData$activity==activities[a,2], ]
+                td[row, 3:nC] <- colMeans(tmp[ ,3:nC])
+                row = row + 1
+        }
+}
+
+## Save tidy data set
+write.table(td, file="./tidy_data.txt", row.name = FALSE)
