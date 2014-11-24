@@ -22,20 +22,20 @@ train_subject <- read.table("./train/subject_train.txt")
 train_data <- read.table("./train/X_train.txt")
 train_labels <- read.table("./train/Y_train.txt")
 
-features <- read.table("./features.txt")
+featuresList <- read.table("./features.txt", stringsAsFactors = FALSE)
 activity_labels <- read.table("./activity_labels.txt")
 
-## Merge the test and training subject datasets
+## Combine test and training datasets 
+data <- rbind(test_data, train_data)
+colnames(data) <- features[, 2]
+
+## Combine test and training subjects
 subject <- rbind(test_subject, train_subject)
 colnames(subject) <- "subject"
 
-## Merge and label the test and training labels
+## Combine test and training labels
 labels <- rbind(test_labels, train_labels)
 activity <- merge(labels, activity_labels, by = 1)[, 2]
-
-## Merge and label test and training datasets 
-data <- rbind(test_data, train_data)
-colnames(data) <- features[, 2]
 
 ## Final merge
 data <- cbind(subject, activity, data)
@@ -47,15 +47,6 @@ desired_data <- data[, c(1, 2, search)]
 ## Group by subject/label
 melted = melt(desired_data, id.var = c("subject", "activity"))
 tidy = dcast(melted, subject + activity ~ variable, mean)
-
-## Apply descriptive activity names
-
-tidy[,"activity"] <- gsub(1,"Walking", tidy$activity)
-tidy[,"activity"] <- gsub(2,"Walking Upstairs", tidy$activity)
-tidy[,"activity"] <- gsub(3,"Walking Downstairs", tidy$activity)
-tidy[,"activity"] <- gsub(4,"Sitting", tidy$activity)
-tidy[,"activity"] <- gsub(5,"Standing", tidy$activity)
-tidy[,"activity"] <- gsub(6,"Laying", tidy$activity)
 
 ## Apply descriptive variable names
 
