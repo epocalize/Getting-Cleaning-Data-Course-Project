@@ -33,7 +33,7 @@ labels <- rbind(test_labels, train_labels)
 features <- featuresList$V2
 
 ## Extract mean and standard deviation columns (step 2)
-keepColumns <- grepl("mean|std[^F]", features, perl = TRUE)
+keepColumns <- grepl("-mean|-std[^F]", features, perl = TRUE)
 
 ## Rename
 data <- data[, keepColumns]
@@ -64,7 +64,7 @@ headervalues -> names(tidyData)
 
 ## Create second tidy data set with average of each variable for each activity and each subject
 ## (step 5)
-uS = unique(subject)[, 1]
+uS = unique(subjects)[, 1]
 nS = length(uS)
 nA = length(activities[, 1])
 nC = length(names(tidyData))
