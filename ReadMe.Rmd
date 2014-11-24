@@ -3,7 +3,6 @@ The purpose of this project is to demonstrate the ability to collect, work with,
 
 This repository contains this file, the R script `run_analysis.R`, and a codebook describing the data. Together, these make up the course project for "Getting and Cleaning Data," taken November 2014 through Coursera.
 
-
 #### Function Summary
 
 `run_analysis.R` combines the test and training data, then aggregates the results by subject; for each feature, means of multiple trials are taken. The script assumes you have already downloaded the data from: 
@@ -18,7 +17,7 @@ and have it unzipped and set as your working directory.
 - Extracts only the measurements on the mean and standard deviation for each measurement. 
 - Uses descriptive activity names to name the activities in the data set
 - Appropriately labels the data set with descriptive variable names. 
-- From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
+- From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject. This data set is in the 'wide' format.
 
 The code for reading the tidy data set back into R is:
 
@@ -26,20 +25,11 @@ The code for reading the tidy data set back into R is:
 
 `View(data)`
 
-
 #### Source
-The raw data was collected from the accelerometers from the Samsung Galaxy S smartphone. More information about can be found at: 
+The raw data was collected from the accelerometers from the Samsung Galaxy S smartphone. More information can be found at: 
 
 http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones
 
-
-#### Dependencies
-
-`run_analysis.R` depends on the `reshape2` package. 
-
-Note: The script will install and load the required package if necessary.
-
-
 #### Acknowledgements
 
-I would like to thank the many students and CTAs on the Coursera class forums for Getting & Cleaning Data whose questions and answers provided an invaluable resource in the completion of this project.
+I would like to thank the many students and CTAs on the Coursera class forums for Getting & Cleaning Data whose questions and answers provided an invaluable resource in the completion of this project. Certain descriptions of the original data, the variables and features, and how the data were obtained, are taken from the 'README.txt' and 'features_info.txt' files included with the source data.
